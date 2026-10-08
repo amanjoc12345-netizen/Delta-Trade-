@@ -1,0 +1,264 @@
+/* Delta Trade Main Dashboard Layout */
+
+.deltatrade-app,
+.streetdesk-app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  background-color: var(--bg-base);
+  overflow: hidden;
+}
+
+/* Header */
+.app-header {
+  height: 48px;
+  background-color: var(--bg-surface);
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--space-4);
+  flex-shrink: 0;
+  z-index: 20;
+}
+
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  user-select: none;
+}
+
+.delta-brand-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  filter: drop-shadow(0 0 6px rgba(0, 210, 255, 0.4));
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.delta-brand-logo:hover {
+  transform: scale(1.06);
+  filter: drop-shadow(0 0 10px rgba(0, 210, 255, 0.7));
+}
+
+.delta-logo-svg {
+  width: 100%;
+  height: 100%;
+}
+
+.brand-title {
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  background: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 50%, #6366f1 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
+}
+
+[data-theme='light'] .brand-title {
+  background: linear-gradient(135deg, #0284c7 0%, #2563eb 50%, #4f46e5 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.brand-badge {
+  font-size: 9px;
+  font-weight: 750;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  background: rgba(0, 210, 255, 0.08);
+  color: #0284c7;
+  border: 1px solid rgba(2, 132, 199, 0.25);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+[data-theme='dark'] .brand-badge {
+  background: rgba(0, 210, 255, 0.12);
+  color: #38bdf8;
+  border-color: rgba(56, 189, 248, 0.3);
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/* Summary Strip */
+.summary-strip {
+  display: flex;
+  align-items: center;
+  background-color: var(--bg-surface);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: var(--space-2) var(--space-4);
+  gap: var(--space-5);
+  flex-shrink: 0;
+  overflow-x: auto;
+}
+
+.summary-metric {
+  display: flex;
+  flex-direction: column;
+}
+
+.metric-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.metric-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.metric-value.profit {
+  color: var(--color-buy);
+}
+
+.metric-value.loss {
+  color: var(--color-sell);
+}
+
+.metric-divider {
+  width: 1px;
+  height: 24px;
+  background-color: var(--border-subtle);
+}
+
+/* Main Workspace */
+.dashboard-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-2);
+  gap: var(--space-2);
+  overflow: hidden;
+  min-height: 0;
+}
+
+.workspace-top-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 270px minmax(0, 1fr) 310px;
+  gap: var(--space-2);
+  min-height: 0;
+}
+
+.workspace-panel {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.bottom-dock {
+  height: 240px;
+  flex-shrink: 0;
+  display: flex;
+}
+
+/* Tablet Layout (768px - 1100px) */
+@media (max-width: 1100px) and (min-width: 768px) {
+  .workspace-top-grid {
+    grid-template-columns: 220px minmax(0, 1fr) 260px;
+    gap: var(--space-2);
+  }
+
+  .header-quick-tickers {
+    max-width: 260px;
+  }
+}
+
+/* Mobile Layout (< 768px) */
+@media (max-width: 768px) {
+  .deltatrade-app,
+  .streetdesk-app {
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  .app-header {
+    padding: 0 var(--space-2);
+    height: auto;
+    min-height: 48px;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    padding-top: var(--space-2);
+    padding-bottom: var(--space-2);
+  }
+
+  .header-left-cluster {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .header-quick-tickers {
+    display: none;
+  }
+
+  .header-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .dashboard-main {
+    overflow-y: visible;
+    padding: var(--space-2);
+  }
+
+  .workspace-top-grid {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .workspace-panel.watchlist-panel {
+    max-height: 240px;
+  }
+
+  .workspace-panel.chart-panel {
+    min-height: 320px;
+    height: 340px;
+  }
+
+  .workspace-panel.order-panel {
+    min-height: 360px;
+  }
+
+  .bottom-dock {
+    height: auto;
+    min-height: 280px;
+  }
+
+  .summary-strip {
+    gap: var(--space-3);
+    padding: var(--space-2);
+  }
+
+  .submit-order-button {
+    min-height: var(--touch-target);
+  }
+
+  .side-segment-btn {
+    min-height: var(--touch-target);
+  }
+
+  .pct-button {
+    min-height: 34px;
+  }
+}
