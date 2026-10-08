@@ -88,6 +88,8 @@ export const TIMEFRAMES = [
   { id: '5m', label: '5m', seconds: 300 },
   { id: '15m', label: '15m', seconds: 900 },
   { id: '1h', label: '1h', seconds: 3600 },
+  { id: '4h', label: '4h', seconds: 14400 },
+  { id: '1d', label: '1D', seconds: 86400 },
 ];
 
 export const INITIAL_ACCOUNT_CASH = 10000; // 10,000 USDT starting cash

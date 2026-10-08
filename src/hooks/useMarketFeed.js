@@ -1,6 +1,7 @@
 /**
  * useMarketFeed Custom Hook
  * Streams real live cryptocurrency market data directly from Binance.
+ * Manages deep historical candle bars (500 initial, up to 1000) and seamless pagination.
  */
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
@@ -20,6 +21,7 @@ export function useMarketFeed() {
   const [candleError, setCandleError] = useState(null);
 
   const requestIdRef = useRef(0);
+  const isLoadingMoreRef = useRef(false);
   const activeSymbolRef = useRef(DEFAULT_INSTRUMENT.id);
   const activeIntervalRef = useRef('5m');
 
@@ -29,7 +31,7 @@ export function useMarketFeed() {
     activeIntervalRef.current = selectedInterval;
   }, [selectedInstrument.id, selectedInterval]);
 
-  // Fetch initial real 24h ticker data for all 5 pairs from Binance
+  // Fetch initial real 24h ticker data for all pairs from Binance
   useEffect(() => {
     let isCancelled = false;
 
@@ -49,7 +51,7 @@ export function useMarketFeed() {
     };
   }, []);
 
-  // Load Real Historical Candles when instrument or interval changes
+  // Load Deep Real Historical Candles (500 bars) when instrument or interval changes
   useEffect(() => {
     let isCancelled = false;
     const currentReqId = ++requestIdRef.current;
@@ -58,7 +60,7 @@ export function useMarketFeed() {
 
     const loadHistory = async () => {
       try {
-        const data = await binanceProvider.fetchCandles(sym, interval, 100);
+        const data = await binanceProvider.fetchCandles(sym, interval, 500);
         if (!isCancelled && currentReqId === requestIdRef.current) {
           setCandleState({
             symbol: sym,
@@ -81,6 +83,39 @@ export function useMarketFeed() {
     };
   }, [selectedInstrument.id, selectedInterval]);
 
+  // Paginated load of older historical candles when scrolled to the left
+  const loadMoreHistory = useCallback(async () => {
+    if (isLoadingMoreRef.current) return;
+    const currentData = candleState.data;
+    if (!currentData || currentData.length === 0) return;
+
+    const oldest = currentData[0];
+    const oldestMs = oldest.time * 1000;
+    const sym = selectedInstrument.id;
+    const interval = selectedInterval;
+
+    try {
+      isLoadingMoreRef.current = true;
+      const olderCandles = await binanceProvider.fetchCandles(sym, interval, 300, oldestMs - 1);
+      if (olderCandles && olderCandles.length > 0) {
+        setCandleState(prev => {
+          if (prev.symbol !== sym || prev.interval !== interval) return prev;
+          const existingTimes = new Set(prev.data.map(c => c.time));
+          const uniqueOlder = olderCandles.filter(c => !existingTimes.has(c.time));
+          if (uniqueOlder.length === 0) return prev;
+          return {
+            ...prev,
+            data: [...uniqueOlder, ...prev.data],
+          };
+        });
+      }
+    } catch {
+      // End of history reached or transient network issue
+    } finally {
+      isLoadingMoreRef.current = false;
+    }
+  }, [candleState.data, selectedInstrument.id, selectedInterval]);
+
   // Subscribe to Live Quotes & Candle ticks via Binance WebSocket
   useEffect(() => {
     const sym = selectedInstrument.id;
@@ -97,18 +132,15 @@ export function useMarketFeed() {
     };
 
     const onCandle = (candle, candleSymbol, candleInterval) => {
-      // Strictly ignore ticks that do not match the currently active symbol and timeframe
       if (candleSymbol && candleSymbol !== sym) return;
       if (candleInterval && candleInterval !== interval) return;
 
       setCandleState(prev => {
-        // Double check matching state
         if (prev.symbol !== sym || prev.interval !== interval) {
           return prev;
         }
 
         const prevData = prev.data;
-        // Don't inject isolated live candle before historical data has arrived
         if (!prevData || prevData.length === 0) {
           return prev;
         }
@@ -120,7 +152,7 @@ export function useMarketFeed() {
           updated[updated.length - 1] = candle;
           return { ...prev, data: updated };
         } else if (candle.time > last.time) {
-          return { ...prev, data: [...prevData.slice(-150), candle] };
+          return { ...prev, data: [...prevData.slice(-1000), candle] };
         }
         return prev;
       });
@@ -177,5 +209,6 @@ export function useMarketFeed() {
     candles: activeCandles,
     isLoadingCandles,
     candleError,
+    loadMoreHistory,
   };
 }

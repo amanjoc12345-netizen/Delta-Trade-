@@ -1,6 +1,13 @@
 {
   "framework": "vite",
   "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+    {
+      "source": "/api/v3/:path*",
+      "destination": "https://data-api.binance.vision/api/v3/:path*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
   ]
 }

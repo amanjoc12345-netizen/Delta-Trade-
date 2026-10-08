@@ -1,8 +1,8 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { createChart, CandlestickSeries, ColorType, CrosshairMode, LineStyle } from 'lightweight-charts';
 import { TIMEFRAMES } from '../utils/instruments.js';
 import { formatPrice, formatPercent, formatQuantity, formatDateTime } from '../utils/formatting.js';
-import { AlertCircle, RefreshCw, Maximize2, Minimize2, X } from 'lucide-react';
+import { AlertCircle, RefreshCw, Maximize2, Minimize2, X, ZoomIn, Compass } from 'lucide-react';
 
 export default function CandlestickChart({
   instrument,
@@ -14,6 +14,7 @@ export default function CandlestickChart({
   quote,
   position,
   onClosePosition,
+  onLoadMoreHistory,
 }) {
   const containerRef = useRef(null);
   const chartWrapperRef = useRef(null);
@@ -21,9 +22,15 @@ export default function CandlestickChart({
   const seriesRef = useRef(null);
   const positionLineRef = useRef(null);
   const lastDataKeyRef = useRef('');
+  const lastCandleCountRef = useRef(0);
+  const loadMoreCallbackRef = useRef(onLoadMoreHistory);
 
   const [crosshairData, setCrosshairData] = useState(null);
   const [isChartFullscreen, setIsChartFullscreen] = useState(false);
+
+  useEffect(() => {
+    loadMoreCallbackRef.current = onLoadMoreHistory;
+  }, [onLoadMoreHistory]);
 
   // Helper to read current theme colors
   const getThemeChartColors = () => {
@@ -78,6 +85,22 @@ export default function CandlestickChart({
         borderColor: colors.border,
         timeVisible: true,
         secondsVisible: false,
+        rightOffset: 10,
+        barSpacing: 7,
+        minBarSpacing: 2,
+        fixLeftEdge: false,
+        fixRightEdge: false,
+      },
+      handleScroll: {
+        mouseWheel: true,
+        pressedMouseMove: true,
+        horzTouchDrag: true,
+        vertTouchDrag: true,
+      },
+      handleScale: {
+        axisPressedMouseMove: true,
+        mouseWheel: true,
+        pinch: true,
       },
     });
 
@@ -98,13 +121,20 @@ export default function CandlestickChart({
     chartRef.current = chart;
     seriesRef.current = series;
 
-    // Crosshair move handler
+    // Crosshair move listener
     chart.subscribeCrosshairMove((param) => {
       if (!param.point || !param.time || !param.seriesData.get(series)) {
         setCrosshairData(null);
       } else {
         const bar = param.seriesData.get(series);
         setCrosshairData(bar);
+      }
+    });
+
+    // Visible range listener for historical infinite scroll back
+    chart.timeScale().subscribeVisibleLogicalRangeChange((logicalRange) => {
+      if (logicalRange && logicalRange.from < 15 && loadMoreCallbackRef.current) {
+        loadMoreCallbackRef.current();
       }
     });
 
@@ -159,8 +189,6 @@ export default function CandlestickChart({
     };
   }, []);
 
-  const lastCandleCountRef = useRef(0);
-
   // Update Series Precision when instrument changes
   useEffect(() => {
     if (!seriesRef.current) return;
@@ -173,11 +201,10 @@ export default function CandlestickChart({
     });
   }, [instrument.id, instrument.decimals]);
 
-  // Sync Data to Chart safely without mixing instruments
+  // Sync Data to Chart with real-time scrolling and seamless prepending
   useEffect(() => {
     if (!seriesRef.current) return;
 
-    // If candles are empty (e.g. while loading new instrument), clear chart canvas immediately
     if (!candles || candles.length === 0) {
       seriesRef.current.setData([]);
       lastDataKeyRef.current = '';
@@ -190,15 +217,17 @@ export default function CandlestickChart({
     const prevCount = lastCandleCountRef.current;
     const currentCount = candles.length;
 
-    // Full historical reload if key changed, or if a multi-bar batch arrived
+    // Full batch or pagination reload
     const isFullBatch = isNewKey || prevCount <= 1 || Math.abs(currentCount - prevCount) > 1;
 
     if (isFullBatch) {
       seriesRef.current.setData(candles);
       lastDataKeyRef.current = dataKey;
       lastCandleCountRef.current = currentCount;
-      if (chartRef.current) {
-        chartRef.current.timeScale().fitContent();
+
+      // On initial load of new key, scroll to the live latest candle with right margin
+      if (isNewKey && chartRef.current) {
+        chartRef.current.timeScale().scrollToRealTime();
       }
     } else {
       const latestBar = candles[candles.length - 1];
@@ -258,7 +287,22 @@ export default function CandlestickChart({
     }
   };
 
+  const handleFitContent = useCallback(() => {
+    if (chartRef.current) {
+      chartRef.current.timeScale().fitContent();
+    }
+  }, []);
+
+  const handleScrollToRealtime = useCallback(() => {
+    if (chartRef.current) {
+      chartRef.current.timeScale().scrollToRealTime();
+    }
+  }, []);
+
   const activeBar = crosshairData || (candles && candles.length > 0 ? candles[candles.length - 1] : null);
+
+  const barChange = activeBar ? ((activeBar.close - activeBar.open) / activeBar.open) * 100 : 0;
+  const isBarPos = barChange >= 0;
 
   // Position live floating metrics
   const hasActivePosition = position && position.quantity > 0 && position.avgEntryPrice > 0;
@@ -295,7 +339,7 @@ export default function CandlestickChart({
           </div>
         </div>
 
-        {/* Timeframe Selectors & Fullscreen */}
+        {/* Timeframe Selectors & Chart Tools */}
         <div className="chart-controls-group">
           <div className="timeframe-selector" role="group" aria-label="Chart timeframes">
             {TIMEFRAMES.map((tf) => (
@@ -311,18 +355,40 @@ export default function CandlestickChart({
             ))}
           </div>
 
-          <button
-            className="chart-fs-btn"
-            onClick={toggleChartFullscreen}
-            title={isChartFullscreen ? 'Exit Chart Fullscreen' : 'Expand Chart Fullscreen'}
-            aria-label="Toggle Chart Fullscreen"
-          >
-            {isChartFullscreen ? <Minimize2 size={13} /> : <Maximize2 size={13} />}
-          </button>
+          <div className="chart-actions-subgroup">
+            <button
+              className="chart-tool-btn"
+              onClick={handleScrollToRealtime}
+              title="Recenter to Real-Time (Latest Candle)"
+              aria-label="Recenter to Real-Time"
+            >
+              <Compass size={13} />
+              <span className="btn-label-desktop">Live</span>
+            </button>
+
+            <button
+              className="chart-tool-btn"
+              onClick={handleFitContent}
+              title="Fit Full Chart History"
+              aria-label="Fit Full Chart History"
+            >
+              <ZoomIn size={13} />
+              <span className="btn-label-desktop">Fit All</span>
+            </button>
+
+            <button
+              className="chart-fs-btn"
+              onClick={toggleChartFullscreen}
+              title={isChartFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
+              aria-label="Toggle Chart Fullscreen"
+            >
+              {isChartFullscreen ? <Minimize2 size={13} /> : <Maximize2 size={13} />}
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* OHLC Bar */}
+      {/* OHLC Bar - Theme aware and readable */}
       <div className="chart-ohlc-bar font-mono">
         {activeBar ? (
           <div className="ohlc-items">
@@ -331,9 +397,12 @@ export default function CandlestickChart({
             <span className="ohlc-stat">H: <strong className="val">{formatPrice(activeBar.high, instrument.decimals)}</strong></span>
             <span className="ohlc-stat">L: <strong className="val">{formatPrice(activeBar.low, instrument.decimals)}</strong></span>
             <span className="ohlc-stat">C: <strong className="val">{formatPrice(activeBar.close, instrument.decimals)}</strong></span>
+            <span className={`ohlc-stat ohlc-chg ${isBarPos ? 'pos' : 'neg'}`}>
+              ({isBarPos ? '+' : ''}{barChange.toFixed(2)}%)
+            </span>
           </div>
         ) : (
-          <span className="ohlc-empty">Loading OHLC metrics...</span>
+          <span className="ohlc-empty">Connecting to real market feed...</span>
         )}
       </div>
 
@@ -369,7 +438,7 @@ export default function CandlestickChart({
                 aria-label={`Close ${instrument.symbol} position`}
               >
                 <X size={12} />
-                <span>Close Position</span>
+                <span>Close</span>
               </button>
             )}
           </div>

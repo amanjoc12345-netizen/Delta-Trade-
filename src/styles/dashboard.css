@@ -101,6 +101,11 @@
   gap: var(--space-5);
   flex-shrink: 0;
   overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.summary-strip::-webkit-scrollbar {
+  display: none;
 }
 
 .summary-metric {
@@ -114,12 +119,14 @@
   color: var(--text-muted);
   font-weight: 600;
   letter-spacing: 0.04em;
+  white-space: nowrap;
 }
 
 .metric-value {
   font-size: 13px;
   font-weight: 600;
   color: var(--text-primary);
+  white-space: nowrap;
 }
 
 .metric-value.profit {
@@ -134,6 +141,7 @@
   width: 1px;
   height: 24px;
   background-color: var(--border-subtle);
+  flex-shrink: 0;
 }
 
 /* Main Workspace */
@@ -155,6 +163,15 @@
   min-height: 0;
 }
 
+.workspace-col-watchlist,
+.workspace-col-chart,
+.workspace-col-order {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+}
+
 .workspace-panel {
   background-color: var(--bg-card);
   border: 1px solid var(--border-subtle);
@@ -163,102 +180,214 @@
   flex-direction: column;
   overflow: hidden;
   min-height: 0;
+  height: 100%;
+}
+
+.workspace-bottom-dock-wrapper {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
 }
 
 .bottom-dock {
-  height: 240px;
+  height: 230px;
   flex-shrink: 0;
   display: flex;
 }
 
-/* Tablet Layout (768px - 1100px) */
-@media (max-width: 1100px) and (min-width: 768px) {
-  .workspace-top-grid {
-    grid-template-columns: 220px minmax(0, 1fr) 260px;
-    gap: var(--space-2);
-  }
-
-  .header-quick-tickers {
-    max-width: 260px;
-  }
+/* Hidden elements on desktop */
+.mobile-chart-quick-trade-bar {
+  display: none;
 }
 
-/* Mobile Layout (< 768px) */
-@media (max-width: 768px) {
-  .deltatrade-app,
-  .streetdesk-app {
-    height: 100%;
-    overflow-y: auto;
-    overflow-x: hidden;
-  }
+.mobile-nav-bar {
+  display: none;
+}
 
-  .app-header {
-    padding: 0 var(--space-2);
-    height: auto;
-    min-height: 48px;
-    flex-wrap: wrap;
+/* Tablet Layout (769px - 1050px) */
+@media (max-width: 1050px) and (min-width: 769px) {
+  .workspace-top-grid {
+    grid-template-columns: 210px minmax(0, 1fr) 270px;
     gap: var(--space-2);
-    padding-top: var(--space-2);
-    padding-bottom: var(--space-2);
-  }
-
-  .header-left-cluster {
-    width: 100%;
-    justify-content: space-between;
   }
 
   .header-quick-tickers {
     display: none;
   }
 
-  .header-actions {
-    width: 100%;
-    justify-content: space-between;
+  .bottom-dock {
+    height: 190px;
+  }
+}
+
+/* Mobile & Small Device Layout (<= 768px) */
+@media (max-width: 768px) {
+  .deltatrade-app,
+  .streetdesk-app {
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .app-header {
+    padding: 0 var(--space-3);
+    height: 48px;
+  }
+
+  .header-quick-tickers {
+    display: none;
+  }
+
+  .summary-strip {
+    padding: var(--space-2) var(--space-3);
+    gap: var(--space-4);
   }
 
   .dashboard-main {
-    overflow-y: visible;
+    flex: 1;
+    overflow-y: auto;
     padding: var(--space-2);
+    padding-bottom: calc(64px + env(safe-area-inset-bottom));
   }
 
   .workspace-top-grid {
     display: flex;
     flex-direction: column;
-    gap: var(--space-2);
+    flex: 1;
+    min-height: 0;
+    gap: 0;
   }
 
-  .workspace-panel.watchlist-panel {
-    max-height: 240px;
+  /* Mobile Segmented View: display only active tab */
+  .workspace-col-watchlist,
+  .workspace-col-chart,
+  .workspace-col-order,
+  .workspace-bottom-dock-wrapper {
+    display: none;
+    flex-direction: column;
+    flex: 1;
+    width: 100%;
+    min-height: 0;
+  }
+
+  .workspace-col-watchlist.mobile-active,
+  .workspace-col-chart.mobile-active,
+  .workspace-col-order.mobile-active,
+  .workspace-bottom-dock-wrapper.mobile-active {
+    display: flex;
+  }
+
+  .workspace-col-chart.mobile-active {
+    min-height: calc(100vh - 170px);
+    height: 100%;
   }
 
   .workspace-panel.chart-panel {
-    min-height: 320px;
-    height: 340px;
+    flex: 1;
+    min-height: 380px;
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+  }
+
+  .mobile-chart-quick-trade-bar {
+    display: flex;
+    gap: 8px;
+    padding: 8px 10px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-top: none;
+    border-radius: 0 0 var(--radius-md) var(--radius-md);
+  }
+
+  .mobile-quick-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    transition: transform 0.1s ease, filter 0.15s ease;
+  }
+
+  .mobile-quick-btn.buy {
+    background: var(--color-buy);
+    color: #ffffff;
+  }
+
+  .mobile-quick-btn.sell {
+    background: var(--color-sell);
+    color: #ffffff;
+  }
+
+  .workspace-panel.watchlist-panel {
+    height: calc(100vh - 170px);
   }
 
   .workspace-panel.order-panel {
-    min-height: 360px;
+    min-height: auto;
+    height: calc(100vh - 170px);
+    overflow-y: auto;
   }
 
   .bottom-dock {
-    height: auto;
-    min-height: 280px;
+    height: calc(100vh - 170px);
   }
 
-  .summary-strip {
-    gap: var(--space-3);
-    padding: var(--space-2);
+  /* Fixed Mobile Bottom Navigation Bar */
+  .mobile-nav-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 56px;
+    background: var(--bg-surface);
+    border-top: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    z-index: 100;
+    padding-bottom: env(safe-area-inset-bottom);
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.12);
   }
 
-  .submit-order-button {
-    min-height: var(--touch-target);
+  .mobile-nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    position: relative;
+    padding: 6px 0;
+    transition: color 0.15s ease;
   }
 
-  .side-segment-btn {
-    min-height: var(--touch-target);
+  .mobile-nav-item.active {
+    color: var(--color-primary);
   }
 
-  .pct-button {
-    min-height: 34px;
+  .mobile-nav-badge {
+    position: absolute;
+    top: 4px;
+    right: calc(50% - 18px);
+    background: var(--color-sell);
+    color: #ffffff;
+    font-size: 9px;
+    font-weight: 750;
+    padding: 1px 4px;
+    border-radius: 8px;
+    min-width: 14px;
+    text-align: center;
   }
 }
