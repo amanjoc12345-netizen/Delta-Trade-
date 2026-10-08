@@ -3,6 +3,9 @@
 **CapitalStreetFX Frontend Developer Evaluation Assignment**  
 Built with **React 19**, **JavaScript (ES Modules)**, **Vite**, **Vanilla CSS**, **TradingView Lightweight Charts v5**, **Lucide React**, and tested with **Vitest**.
 
+- 🌐 **Live Production URL**: [https://delta-trade-two.vercel.app](https://delta-trade-two.vercel.app)
+- 📦 **GitHub Repository**: [https://github.com/amanjoc12345-netizen/Delta-Trade-](https://github.com/amanjoc12345-netizen/Delta-Trade-)
+
 ---
 
 ## 1. Overview & Architecture
