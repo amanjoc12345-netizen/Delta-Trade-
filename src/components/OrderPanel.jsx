@@ -5,13 +5,19 @@ import { formatPrice, formatCurrency, formatQuantity } from '../utils/formatting
 import { ShoppingCart, AlertCircle, ArrowUpCircle, ArrowDownCircle } from 'lucide-react';
 import ConfirmOrderDialog from './ConfirmOrderDialog.jsx';
 
-export default function OrderPanel({ instrument, quote }) {
+export default function OrderPanel({ instrument, quote, defaultSide = 'BUY' }) {
   const { cash, holdings, buyOrder, sellOrder } = useTrading();
 
-  const [side, setSide] = useState('BUY'); // 'BUY' | 'SELL'
+  const [side, setSide] = useState(defaultSide); // 'BUY' | 'SELL'
+  const [prevDefaultSide, setPrevDefaultSide] = useState(defaultSide);
   const [quantity, setQuantity] = useState('');
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  if (defaultSide !== prevDefaultSide) {
+    setPrevDefaultSide(defaultSide);
+    setSide(defaultSide);
+  }
 
   // Available asset quantity owned for this instrument
   const holding = holdings[instrument.id];

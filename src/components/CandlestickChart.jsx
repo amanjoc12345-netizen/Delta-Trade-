@@ -325,7 +325,7 @@ export default function CandlestickChart({
     >
       {/* Chart Top Header */}
       <div className="chart-header">
-        <div className="chart-title-area">
+        <div className="chart-header-top">
           <div className="symbol-quote-row">
             <span className="chart-symbol">{instrument.symbol}</span>
             <span className="chart-price font-mono">
@@ -336,23 +336,6 @@ export default function CandlestickChart({
                 {formatPercent(quote.change24h)}
               </span>
             )}
-          </div>
-        </div>
-
-        {/* Timeframe Selectors & Chart Tools */}
-        <div className="chart-controls-group">
-          <div className="timeframe-selector" role="group" aria-label="Chart timeframes">
-            {TIMEFRAMES.map((tf) => (
-              <button
-                key={tf.id}
-                className={`tf-button ${interval === tf.id ? 'active' : ''}`}
-                onClick={() => onSelectInterval(tf.id)}
-                aria-pressed={interval === tf.id}
-                id={`tf-${tf.id}`}
-              >
-                {tf.label}
-              </button>
-            ))}
           </div>
 
           <div className="chart-actions-subgroup">
@@ -386,6 +369,21 @@ export default function CandlestickChart({
             </button>
           </div>
         </div>
+
+        {/* Timeframe Selectors Strip */}
+        <div className="timeframe-selector" role="group" aria-label="Chart timeframes">
+          {TIMEFRAMES.map((tf) => (
+            <button
+              key={tf.id}
+              className={`tf-button ${interval === tf.id ? 'active' : ''}`}
+              onClick={() => onSelectInterval(tf.id)}
+              aria-pressed={interval === tf.id}
+              id={`tf-${tf.id}`}
+            >
+              {tf.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* OHLC Bar - Theme aware and readable */}
@@ -393,16 +391,18 @@ export default function CandlestickChart({
         {activeBar ? (
           <div className="ohlc-items">
             <span className="ohlc-time">{formatDateTime(activeBar.time * 1000)}</span>
-            <span className="ohlc-stat">O: <strong className="val">{formatPrice(activeBar.open, instrument.decimals)}</strong></span>
-            <span className="ohlc-stat">H: <strong className="val">{formatPrice(activeBar.high, instrument.decimals)}</strong></span>
-            <span className="ohlc-stat">L: <strong className="val">{formatPrice(activeBar.low, instrument.decimals)}</strong></span>
-            <span className="ohlc-stat">C: <strong className="val">{formatPrice(activeBar.close, instrument.decimals)}</strong></span>
-            <span className={`ohlc-stat ohlc-chg ${isBarPos ? 'pos' : 'neg'}`}>
-              ({isBarPos ? '+' : ''}{barChange.toFixed(2)}%)
-            </span>
+            <div className="ohlc-stats-group">
+              <span className="ohlc-stat">O: <strong className="val">{formatPrice(activeBar.open, instrument.decimals)}</strong></span>
+              <span className="ohlc-stat">H: <strong className="val">{formatPrice(activeBar.high, instrument.decimals)}</strong></span>
+              <span className="ohlc-stat">L: <strong className="val">{formatPrice(activeBar.low, instrument.decimals)}</strong></span>
+              <span className="ohlc-stat">C: <strong className="val">{formatPrice(activeBar.close, instrument.decimals)}</strong></span>
+              <span className={`ohlc-stat ohlc-chg ${isBarPos ? 'pos' : 'neg'}`}>
+                ({isBarPos ? '+' : ''}{barChange.toFixed(2)}%)
+              </span>
+            </div>
           </div>
         ) : (
-          <span className="ohlc-empty">Connecting to real market feed...</span>
+          <span className="ohlc-empty">Live market stream ready</span>
         )}
       </div>
 

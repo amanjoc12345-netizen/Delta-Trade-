@@ -74,11 +74,11 @@ export default function Header({
             </svg>
           </div>
           <span className="brand-title">Delta Trade</span>
-          <span className="brand-badge">PRO TERMINAL</span>
+          <span className="brand-badge desktop-only">PRO TERMINAL</span>
         </div>
 
-        {/* Quick Instrument Strip across header */}
-        <div className="header-quick-tickers" role="tablist" aria-label="Quick instrument switcher">
+        {/* Quick Instrument Strip across header - visible on wide desktop screens */}
+        <div className="header-quick-tickers desktop-only" role="tablist" aria-label="Quick instrument switcher">
           {(instruments || []).slice(0, 4).map((inst) => {
             const isSelected = selectedInstrument?.id === inst.id;
             const q = quotes?.[inst.id];
@@ -106,14 +106,15 @@ export default function Header({
 
       {/* Header Right Actions */}
       <div className="header-actions">
-        {/* Live Market Data Status Pill */}
+        {/* Live Market Data Status Indicator */}
         <div
           className={`status-pill ${isConnected ? 'connected' : 'connecting'}`}
-          title="Direct live public market stream from Binance"
+          title={isConnected ? 'Connected: Streaming live market data from Binance' : 'Connecting to Binance...'}
+          aria-label={isConnected ? 'Live Market Feed Connected' : 'Connecting'}
         >
           <span className="status-indicator-dot"></span>
-          <span className="status-label-text">
-            {isConnected ? 'Live Market Data' : 'Connecting...'}
+          <span className="status-label-text desktop-only">
+            {isConnected ? 'Live Stream' : 'Connecting...'}
           </span>
         </div>
 
@@ -125,7 +126,7 @@ export default function Header({
           aria-label={isFullscreen ? 'Exit Full Screen' : 'Enter Full Screen'}
           id="fullscreen-toggle-btn"
         >
-          {isFullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+          {isFullscreen ? <Minimize2 size={15} /> : <Maximize2 size={15} />}
         </button>
 
         {/* Theme Toggle (Light / Dark) */}
@@ -136,7 +137,7 @@ export default function Header({
           aria-label="Toggle Theme Mode"
           id="theme-toggle-btn"
         >
-          {theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}
+          {theme === 'light' ? <Moon size={15} /> : <Sun size={15} />}
         </button>
 
         {/* Reset Demo Account */}
@@ -148,7 +149,7 @@ export default function Header({
             aria-label="Reset demo account"
           >
             <RotateCcw size={13} />
-            <span className="btn-text">Reset Demo ($10k)</span>
+            <span className="btn-text desktop-only">Reset Demo</span>
           </button>
         </div>
       </div>

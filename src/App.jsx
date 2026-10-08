@@ -34,6 +34,12 @@ function DeltaTradeDashboard() {
 
   // Mobile navigation tab state: 'chart' | 'trade' | 'watchlist' | 'positions'
   const [mobileTab, setMobileTab] = useState('chart');
+  const [initialOrderSide, setInitialOrderSide] = useState('BUY');
+
+  const handleMobileTradeAction = (actionSide) => {
+    setInitialOrderSide(actionSide);
+    setMobileTab('trade');
+  };
 
   const handleClosePosition = (pos) => {
     if (!pos || !pos.quantity) return;
@@ -101,16 +107,16 @@ function DeltaTradeDashboard() {
             <div className="mobile-chart-quick-trade-bar">
               <button
                 className="mobile-quick-btn buy"
-                onClick={() => setMobileTab('trade')}
+                onClick={() => handleMobileTradeAction('BUY')}
               >
-                <ArrowUpRight size={14} />
+                <ArrowUpRight size={15} />
                 <span>Buy / Long {selectedInstrument.baseAsset}</span>
               </button>
               <button
                 className="mobile-quick-btn sell"
-                onClick={() => setMobileTab('trade')}
+                onClick={() => handleMobileTradeAction('SELL')}
               >
-                <ArrowDownRight size={14} />
+                <ArrowDownRight size={15} />
                 <span>Sell / Short {selectedInstrument.baseAsset}</span>
               </button>
             </div>
@@ -121,6 +127,7 @@ function DeltaTradeDashboard() {
             <OrderPanel
               instrument={selectedInstrument}
               quote={currentQuote}
+              defaultSide={initialOrderSide}
             />
           </div>
         </div>

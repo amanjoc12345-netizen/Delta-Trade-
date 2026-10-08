@@ -47,7 +47,9 @@ export default function AccountSummary({ quotes }) {
         <span className="metric-label">Unrealised P&L</span>
         <span className={`metric-value font-mono ${metrics.unrealizedPnL === 0 ? '' : isProfit ? 'profit' : 'loss'}`}>
           {formatCurrency(metrics.unrealizedPnL, true)}
-          {metrics.holdingsValue > 0 && ` (${formatPercent(pnlPercent)})`}
+          {metrics.holdingsValue > 0 && (
+            <span className="metric-pnl-pct"> ({formatPercent(pnlPercent)})</span>
+          )}
         </span>
       </div>
     </section>
